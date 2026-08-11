@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamo - API-to-Analytics Platform</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>STREAMO</h2>
+                <p>Data Engineering Platform</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#overview" class="active" data-route="overview">Overview</a></li>
+                <li><a href="#sources" data-route="sources">Sources</a></li>
+                <li><a href="#analytics" data-route="analytics">Analytics</a></li>
+                <li><a href="#quality" data-route="quality">Data Quality</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- Overview View -->
+            <section id="view-overview" class="view active">
+                <header>
+                    <h1>Overview</h1>
+                    <button class="btn primary" onclick="app.navigate('add-source')">+ Add Data Source</button>
+                </header>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Active Sources</h3>
+                        <p id="ov-active-sources">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Records</h3>
+                        <p id="ov-total-records">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg Quality Rate</h3>
+                        <p id="ov-avg-quality">0%</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Pipeline Status</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>URL</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ov-sources-body">
+                            <!-- populated by js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Add Source View -->
+            <section id="view-add-source" class="view">
+                <header>
+                    <h1>Add Data Source</h1>
+                    <button class="btn secondary" onclick="app.navigate('sources')">Back</button>
+                </header>
+                <div class="card">
+                    <form id="add-source-form" onsubmit="event.preventDefault(); app.validateSource();">
+                        <div class="form-group">
+                            <label>Source Name</label>
+                            <input type="text" id="add-name" required placeholder="e.g., weather">
+                        </div>
+                        <div class="form-group">
+                            <label>API URL</label>
+                            <input type="url" id="add-url" required placeholder="https://api.example.com/data">
+                        </div>
+                        <div class="form-group">
+                            <label>Polling Interval (sec)</label>
+                            <input type="number" id="add-interval" value="60" required>
+                        </div>
+                        <button type="submit" class="btn primary">Validate API</button>
+                    </form>
+                    
+                    <div id="validation-result" class="hidden">
+                        <h3>Validation Result</h3>
+                        <ul class="validation-list" id="validation-list">
+                            <!-- populated by js -->
+                        </ul>
+                        <div id="schema-detected" class="hidden">
+                            <h4>Detected Fields</h4>
+                            <table class="data-table small">
+                                <thead><tr><th>Field</th><th>Type</th></tr></thead>
+                                <tbody id="schema-body"></tbody>
+                            </table>
+                        </div>
+                        <button id="btn-connect" class="btn success hidden" onclick="app.connectSource()">Connect Source</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sources View -->
+            <section id="view-sources" class="view">
+                <header>
+                    <h1>Sources</h1>
+                    <button class="btn primary" onclick="app.navigate('add-source')">+ Add Source</button>
+                </header>
+                <div class="card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Interval</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="src-table-body">
+                            <!-- populated by js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Source Details View -->
+            <section id="view-source-details" class="view">
+                <header>
+                    <h1 id="sd-title">Source Details</h1>
+                    <button class="btn secondary" onclick="app.navigate('sources')">Back</button>
+                </header>
+                <div class="card">
+                    <div class="details-header">
+                        <span id="sd-status" class="badge">Active</span>
+                        <div class="actions">
+                            <button id="btn-sd-start" class="btn success" onclick="app.startSource()">Start</button>
+                            <button id="btn-sd-pause" class="btn warning" onclick="app.pauseSource()">Pause</button>
+                            <button id="btn-sd-stop" class="btn danger" onclick="app.stopSource()">Stop</button>
+                        </div>
+                    </div>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>URL:</strong> <span id="sd-url"></span></div>
+                        <div class="detail-item"><strong>Polling Interval:</strong> <span id="sd-interval"></span>s</div>
+                    </div>
+                    
+                    <h3 class="mt-2">Pipeline Status</h3>
+                    <ul class="pipeline-status">
+                        <li>Ingestion <span class="status-indicator active"></span></li>
+                        <li>Kafka (Topic: <span id="sd-topic"></span>) <span class="status-indicator active"></span></li>
+                        <li>Spark Streaming <span class="status-indicator active"></span></li>
+                        <li>PostgreSQL <span class="status-indicator active"></span></li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Analytics View -->
+            <section id="view-analytics" class="view">
+                <header>
+                    <h1>Analytics</h1>
+                    <select id="analytics-source-select" onchange="app.loadAnalytics()">
+                        <option value="">Select a source...</option>
+                    </select>
+                </header>
+                
+                <div id="analytics-content" class="hidden">
+                    
+                    <h2 class="section-title">Key Metrics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Records</h3>
+                            <p id="kpi-total-records">0</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Quality Rate</h3>
+                            <p id="kpi-quality-rate">0%</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Freshness</h3>
+                            <p id="kpi-freshness">-</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Ingestion Rate</h3>
+                            <p id="kpi-ingestion-rate">0 /sec</p>
+                        </div>
+                    </div>
+                    
+                    <h2 class="section-title mt-2">Insights</h2>
+                    <div class="card">
+                        <ul id="insights-list" class="insights-list">
+                            <!-- populated by js -->
+                        </ul>
+                    </div>
+
+                    <h2 class="section-title mt-2">Metric Summary</h2>
+                    <div class="card">
+                        <div id="metric-summary-grid" class="metric-summary-grid">
+                            <!-- populated by js -->
+                        </div>
+                    </div>
+
+                    <h2 class="section-title mt-2">Trends</h2>
+                    <div class="charts-grid" id="analytics-charts">
+                        <!-- Canvas charts injected dynamically -->
+                    </div>
+                    
+                    <h2 class="section-title mt-2">Latest Records</h2>
+                    <div class="card">
+                        <div style="overflow-x: auto;">
+                            <table class="data-table">
+                                <thead id="records-head"></thead>
+                                <tbody id="records-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="analytics-empty">
+                    <p>Please select an active source to view analytics.</p>
+                </div>
+            </section>
+            
+            <!-- Quality View -->
+            <section id="view-quality" class="view">
+                <header>
+                    <h1>Data Quality</h1>
+                    <select id="quality-source-select" onchange="app.loadQuality()">
+                        <option value="">Select a source...</option>
+                    </select>
+                </header>
+                <div id="quality-content" class="hidden">
+                    <div id="quality-status-msg" class="hidden">Loading quality metrics...</div>
+                    <div id="quality-data-container">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3>Quality Rate</h3>
+                                <p id="dq-rate">0%</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Valid Records</h3>
+                                <p id="dq-valid">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Invalid Records</h3>
+                                <p id="dq-invalid">0</p>
+                            </div>
+                        </div>
+                        
+                        <h2 class="section-title mt-2 hidden" id="dq-breakdown-title">Data Quality Breakdown</h2>
+                        <div class="card hidden" id="dq-breakdown-card">
+                            <div class="metric-summary-grid">
+                                <div class="metric-summary-card">
+                                    <h4>Null Violations</h4>
+                                    <p><span id="dq-nulls">0</span></p>
+                                </div>
+                                <div class="metric-summary-card">
+                                    <h4>Range Violations</h4>
+                                    <p><span id="dq-ranges">0</span></p>
+                                </div>
+                                <div class="metric-summary-card">
+                                    <h4>Format Violations</h4>
+                                    <p><span id="dq-formats">0</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="quality-empty">
+                    <p>Please select an active source to view data quality metrics.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+    <script src="/js/app.js"></script>
+</body>
+</html>

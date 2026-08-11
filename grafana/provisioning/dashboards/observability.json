@@ -1,0 +1,58 @@
+{
+  "uid": "observability",
+  "title": "Pipeline Observability",
+  "tags": [
+    "streamo"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Ingestion vs Processing Time",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT event_timestamp AS time, 1 AS ingested FROM processed_records ORDER BY time DESC LIMIT 100",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Processing Latency",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "postgres",
+            "uid": "PostgreSQL"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT event_timestamp AS time, EXTRACT(EPOCH FROM (processed_at - event_timestamp)) as latency FROM processed_records ORDER BY time DESC LIMIT 100",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}
