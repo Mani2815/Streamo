@@ -7,6 +7,7 @@
     <title>Streamo — Real-Time Data Engineering Platform</title>
     <meta name="description"
         content="Streamo is a real-time data engineering and analytics platform for ingesting, processing, validating, and analyzing streaming data.">
+    <link rel="icon" type="image/svg+xml" href="/assets/logos/favicon.svg">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
@@ -14,7 +15,7 @@
     <!-- Navbar -->
     <nav class="landing-navbar">
         <div class="logo">
-            <h2>Streamo</h2>
+            <img src="/assets/logos/streamo.svg" alt="Streamo Logo" style="height: 40px; width: auto;">
         </div>
         <ul class="landing-nav-links">
             <li><a href="#platform">Platform</a></li>
@@ -145,7 +146,7 @@
             </div>
 
             <!-- Supporting Infrastructure -->
-            <div class="infra-container" style="margin-top: 1rem; padding-top: 1rem; border-top: none;">
+            <div class="infra-container" style="margin-top: 3rem; padding-top: 1rem; border-top: none;">
                 <h3 class="infra-title" style="font-size: 1rem;">Supporting Infrastructure</h3>
                 <div class="infra-grid">
                     <div class="infra-card" style="padding: 0.5rem 1rem; min-width: 200px;">
@@ -310,101 +311,476 @@
             </div>
         </section>
 
-        <!-- Product Preview Section -->
-        <section class="preview-section">
-            <h2 class="section-title">Don't just move data. Understand it.</h2>
-            <p class="preview-desc">Streamo automatically analyzes incoming data, generating real-time quality rates,
-                visual trends, and actionable insights.</p>
-            <div class="preview-content">
-                <div
-                    style="background: var(--bg-primary); border-radius: 12px 12px 0 0; border: 1px solid rgba(255,255,255,0.1); border-bottom: none; overflow: hidden; padding: 2rem; text-align: left;">
+        <!-- Live Pipeline Section -->
+        <section class="live-pipeline-section" id="pipeline-section">
+            <style>
+                .live-pipeline-section {
+                    padding: 6rem 2rem;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
 
-                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                        <div
-                            style="flex: 1; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                            <div
-                                style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
-                                Records Processed</div>
-                            <div style="font-size: 2rem; color: var(--brand-navy); font-weight: 700;">142,593</div>
+                .pipeline-container {
+                    display: grid;
+                    grid-template-columns: 1fr 2fr;
+                    gap: 4rem;
+                    align-items: center;
+                }
+
+                @media (max-width: 1000px) {
+                    .pipeline-container {
+                        grid-template-columns: 1fr;
+                        gap: 2.5rem;
+                    }
+                }
+
+                .pipeline-title {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: var(--brand-navy);
+                    margin-bottom: 1.5rem;
+                    line-height: 1.15;
+                    letter-spacing: -0.025em;
+                }
+
+                .pipeline-desc {
+                    font-size: 1.125rem;
+                    color: var(--text-secondary);
+                    line-height: 1.6;
+                    margin-bottom: 2rem;
+                }
+
+                .pipeline-status {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.625rem;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    letter-spacing: 0.05em;
+                    color: var(--text-secondary);
+                    text-transform: uppercase;
+                    background: white;
+                    padding: 0.5rem 1rem;
+                    border-radius: 9999px;
+                    border: 1px solid var(--border);
+                    box-shadow: var(--shadow-sm);
+                }
+
+                .status-dot {
+                    width: 8px;
+                    height: 8px;
+                    background-color: #0D9488;
+                    border-radius: 50%;
+                    position: relative;
+                }
+
+                .status-dot::after {
+                    content: '';
+                    position: absolute;
+                    top: -4px;
+                    left: -4px;
+                    right: -4px;
+                    bottom: -4px;
+                    border-radius: 50%;
+                    border: 2px solid #0D9488;
+                    opacity: 0.5;
+                    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+                }
+
+                @keyframes pulse-ring {
+                    0% { transform: scale(0.8); opacity: 0.5; }
+                    80%, 100% { transform: scale(1.5); opacity: 0; }
+                }
+
+                .pipeline-visual {
+                    background: white;
+                    border-radius: 12px;
+                    border: 1px solid var(--border);
+                    box-shadow: var(--shadow-md);
+                    padding: 2.5rem;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .pipeline-flow {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    position: relative;
+                    margin-bottom: 3rem;
+                }
+
+                .pipeline-track {
+                    position: absolute;
+                    top: 50%;
+                    left: 50px;
+                    right: 50px;
+                    height: 1px;
+                    background: #E2E8F0;
+                    transform: translateY(-50%);
+                    z-index: 1;
+                }
+
+                .node {
+                    position: relative;
+                    z-index: 2;
+                    background: white;
+                    border: 1px solid var(--border);
+                    border-radius: 8px;
+                    padding: 1.25rem 1rem;
+                    width: 110px;
+                    text-align: center;
+                    box-shadow: var(--shadow-sm);
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    cursor: default;
+                }
+
+                .node:hover {
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-md);
+                    border-color: #CBD5E1;
+                }
+
+                .node-icon {
+                    height: 28px;
+                    margin-bottom: 0.875rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: var(--brand-navy);
+                }
+
+                .node-icon img {
+                    max-height: 100%;
+                    max-width: 100%;
+                    filter: grayscale(100%) opacity(0.8);
+                    transition: filter 0.2s ease;
+                }
+                
+                .node:hover .node-icon img {
+                    filter: grayscale(0%) opacity(1);
+                }
+
+                .node-label {
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: var(--text-secondary);
+                    letter-spacing: 0.05em;
+                    margin-bottom: 0.375rem;
+                }
+
+                .node-metric {
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    color: var(--brand-navy);
+                }
+
+                /* Tooltips */
+                .node::before {
+                    content: attr(data-tooltip);
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(-8px);
+                    background: var(--brand-navy);
+                    color: white;
+                    padding: 0.5rem 0.75rem;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.2s ease;
+                    z-index: 10;
+                    box-shadow: var(--shadow-md);
+                }
+
+                .node::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    border-width: 4px;
+                    border-style: solid;
+                    border-color: var(--brand-navy) transparent transparent transparent;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.2s ease;
+                    z-index: 10;
+                }
+
+                .node:hover::before, .node:hover::after {
+                    opacity: 1;
+                    visibility: visible;
+                    transform: translateX(-50%) translateY(-4px);
+                }
+
+                /* Quality Node */
+                .node.quality-node {
+                    width: 130px;
+                    border-color: #E2E8F0;
+                }
+                .node.quality-node:hover {
+                    border-color: #0D9488;
+                }
+
+                .quality-bar-container {
+                    display: flex;
+                    height: 4px;
+                    border-radius: 2px;
+                    overflow: hidden;
+                    margin-top: 0.5rem;
+                    background: #E2E8F0;
+                }
+
+                .q-valid { background: #0D9488; width: 99.4%; }
+                .q-invalid { background: #94A3B8; width: 0.6%; }
+
+                /* Processing Pulse on Spark */
+                .pulse-ring {
+                    position: absolute;
+                    top: -1px; left: -1px; right: -1px; bottom: -1px;
+                    border: 1px solid #0D9488;
+                    border-radius: 8px;
+                    opacity: 0;
+                    animation: node-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                    pointer-events: none;
+                }
+
+                @keyframes node-pulse {
+                    0% { transform: scale(1); opacity: 0.5; }
+                    100% { transform: scale(1.1); opacity: 0; }
+                }
+
+                /* Particles */
+                .particle-container {
+                    position: absolute;
+                    top: 50%;
+                    left: 50px;
+                    right: 50px;
+                    height: 0;
+                    z-index: 1;
+                }
+
+                .particle {
+                    position: absolute;
+                    top: -2.5px;
+                    left: 0;
+                    width: 5px;
+                    height: 5px;
+                    background: #0D9488;
+                    border-radius: 50%;
+                    opacity: 0;
+                    animation: flow 3.5s linear infinite;
+                }
+
+                .particle:nth-child(2) { animation-delay: 1.1s; }
+                .particle:nth-child(3) { animation-delay: 2.2s; }
+
+                @keyframes flow {
+                    0% { left: 0%; opacity: 0; }
+                    5% { opacity: 1; }
+                    95% { opacity: 1; }
+                    100% { left: 100%; opacity: 0; }
+                }
+
+                /* Metrics Strip */
+                .pipeline-metrics {
+                    display: flex;
+                    justify-content: space-between;
+                    border-top: 1px solid var(--border);
+                    padding-top: 1.5rem;
+                }
+
+                .metric-item {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .m-label {
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    color: var(--text-secondary);
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    margin-bottom: 0.375rem;
+                }
+
+                .m-value {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: var(--brand-navy);
+                    font-variant-numeric: tabular-nums;
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .particle, .pulse-ring, .status-dot::after {
+                        animation: none !important;
+                        display: none !important;
+                    }
+                }
+
+                @media (max-width: 600px) {
+                    .pipeline-flow {
+                        flex-direction: column;
+                        gap: 2.5rem;
+                    }
+                    .pipeline-track {
+                        top: 20px; bottom: 20px; left: 50%;
+                        width: 1px; height: auto;
+                        transform: translateX(-50%);
+                    }
+                    .particle-container {
+                        top: 20px; bottom: 20px; left: 50%;
+                        width: 0; height: auto;
+                    }
+                    @keyframes flow {
+                        0% { top: 0%; opacity: 0; left: -2px; }
+                        5% { opacity: 1; left: -2px;}
+                        95% { opacity: 1; left: -2px;}
+                        100% { top: 100%; opacity: 0; left: -2px;}
+                    }
+                    .particle {
+                        left: -2px; top: 0;
+                    }
+                    .node { width: 100%; max-width: 220px; }
+                    .node.quality-node { width: 100%; max-width: 220px; }
+                    .pipeline-metrics {
+                        flex-wrap: wrap;
+                        gap: 1.5rem;
+                    }
+                    .metric-item {
+                        flex: 1 1 40%;
+                    }
+                }
+            </style>
+
+            <div class="pipeline-container">
+                <!-- Left Column -->
+                <div class="pipeline-text">
+                    <h2 class="pipeline-title">Don't just move data. Understand it.</h2>
+                    <p class="pipeline-desc">Streamo turns incoming streams into signals you can understand — measuring quality, processing events, and surfacing insights in real time.</p>
+                    <div class="pipeline-status">
+                        <span class="status-dot"></span> LIVE DEMO
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="pipeline-visual">
+                    <div class="pipeline-flow">
+                        <div class="pipeline-track"></div>
+                        <div class="particle-container">
+                            <div class="particle"></div>
+                            <div class="particle"></div>
+                            <div class="particle"></div>
                         </div>
-                        <div
-                            style="flex: 1; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                            <div
-                                style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
-                                Quality Score</div>
-                            <div style="font-size: 2rem; color: var(--success); font-weight: 700;">99.8%</div>
+                        
+                        <div class="node" data-tooltip="Ingesting external endpoints">
+                            <div class="node-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; stroke: #475569;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            </div>
+                            <div class="node-label">API Source</div>
+                            <div class="node-metric" id="node-source-rate">1,284 /s</div>
                         </div>
-                        <div
-                            style="flex: 1; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                            <div
-                                style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">
-                                Throughput</div>
-                            <div style="font-size: 2rem; color: var(--brand-navy); font-weight: 700;">450 /s</div>
+
+                        <div class="node" data-tooltip="Event Broker / Buffer">
+                            <div class="node-icon"><img src="/assets/logos/apachekafka.svg" alt="Kafka"></div>
+                            <div class="node-label">Kafka</div>
+                            <div class="node-metric">Queue</div>
+                        </div>
+
+                        <div class="node processing-node" data-tooltip="Processing latency: 42ms">
+                            <div class="pulse-ring"></div>
+                            <div class="node-icon"><img src="/assets/logos/apachespark.svg" alt="Spark"></div>
+                            <div class="node-label">Spark</div>
+                            <div class="node-metric">Streaming</div>
+                        </div>
+
+                        <div class="node quality-node" data-tooltip="Validating schema, types & ranges">
+                            <div class="node-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; stroke: #475569;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                            </div>
+                            <div class="node-label">Quality</div>
+                            <div class="node-metric" style="color: #0D9488;" id="node-quality-rate">99.4%</div>
+                            <div class="quality-bar-container">
+                                <div class="q-valid"></div>
+                                <div class="q-invalid"></div>
+                            </div>
+                        </div>
+
+                        <div class="node" data-tooltip="Serving curated data">
+                            <div class="node-icon"><img src="/assets/logos/postgresql.svg" alt="PostgreSQL"></div>
+                            <div class="node-label">Insights</div>
+                            <div class="node-metric">Live</div>
                         </div>
                     </div>
-
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
-                        <div
-                            style="background: white; padding: 1.5rem; border-radius: 8px; min-height: 200px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
-                            <div
-                                style="font-size: 0.875rem; font-weight: 600; color: var(--brand-navy); margin-bottom: 1rem;">
-                                Live Metric Trend</div>
-                            <div
-                                style="flex: 1; border-bottom: 1px dashed var(--border); display: flex; align-items: flex-end; padding-bottom: 0.5rem;">
-                                <!-- Mock Chart SVG -->
-                                <svg viewBox="0 0 100 20" style="width: 100%; height: 100%; overflow: visible;"
-                                    preserveAspectRatio="none">
-                                    <path d="M0,20 L10,15 L20,18 L30,5 L40,10 L50,2 L60,8 L70,1 L80,12 L90,4 L100,0"
-                                        fill="none" stroke="var(--accent)" stroke-width="2" />
-                                    <path
-                                        d="M0,20 L10,15 L20,18 L30,5 L40,10 L50,2 L60,8 L70,1 L80,12 L90,4 L100,0 L100,20 L0,20 Z"
-                                        fill="rgba(79, 70, 229, 0.1)" />
-                                </svg>
-                            </div>
+                    
+                    <div class="pipeline-metrics">
+                        <div class="metric-item">
+                            <span class="m-label">Records / sec</span>
+                            <span class="m-value" id="demo-records">1,284</span>
                         </div>
-                        <div
-                            style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                            <div
-                                style="font-size: 0.875rem; font-weight: 600; color: var(--brand-navy); margin-bottom: 1rem;">
-                                Constraint Violations</div>
-                            <div style="margin-bottom: 1rem;">
-                                <div
-                                    style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
-                                    <span>Nulls</span> <span>42</span>
-                                </div>
-                                <div style="height: 6px; background: var(--bg-primary); border-radius: 4px;">
-                                    <div
-                                        style="width: 30%; height: 100%; background: var(--warning); border-radius: 4px;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 1rem;">
-                                <div
-                                    style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
-                                    <span>Out of Range</span> <span>12</span>
-                                </div>
-                                <div style="height: 6px; background: var(--bg-primary); border-radius: 4px;">
-                                    <div
-                                        style="width: 15%; height: 100%; background: var(--danger); border-radius: 4px;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <div
-                                    style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
-                                    <span>Format Errors</span> <span>0</span>
-                                </div>
-                                <div style="height: 6px; background: var(--bg-primary); border-radius: 4px;">
-                                    <div
-                                        style="width: 0%; height: 100%; background: var(--danger); border-radius: 4px;">
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="metric-item">
+                            <span class="m-label">Data Quality</span>
+                            <span class="m-value" id="demo-quality" style="color: #0D9488;">99.4%</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Latency</span>
+                            <span class="m-value" id="demo-latency">42 ms</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="m-label">Total Processed</span>
+                            <span class="m-value" id="demo-processed">142,593</span>
                         </div>
                     </div>
-
                 </div>
             </div>
+
+            <!-- Demo Animation Script -->
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const elRecords = document.getElementById('demo-records');
+                    const elNodeSource = document.getElementById('node-source-rate');
+                    const elQuality = document.getElementById('demo-quality');
+                    const elNodeQuality = document.getElementById('node-quality-rate');
+                    const elLatency = document.getElementById('demo-latency');
+                    const elProcessed = document.getElementById('demo-processed');
+
+                    let currentRecords = 1284;
+                    let currentQuality = 99.4;
+                    let currentLatency = 42;
+                    let totalProcessed = 142593;
+
+                    // Update metrics every 2 seconds
+                    setInterval(() => {
+                        // Fluctuate Records +/- 50
+                        const recordDelta = Math.floor(Math.random() * 100) - 50;
+                        currentRecords = Math.max(800, Math.min(2500, currentRecords + recordDelta));
+                        const formattedRecords = currentRecords.toLocaleString();
+                        elRecords.textContent = formattedRecords;
+                        elNodeSource.textContent = formattedRecords + " /s";
+
+                        // Fluctuate Quality slightly
+                        const qDelta = (Math.random() * 0.4) - 0.2;
+                        currentQuality = Math.max(95.0, Math.min(100.0, currentQuality + qDelta));
+                        const formattedQuality = currentQuality.toFixed(1) + "%";
+                        elQuality.textContent = formattedQuality;
+                        elNodeQuality.textContent = formattedQuality;
+                        
+                        // Fluctuate Latency
+                        const latDelta = Math.floor(Math.random() * 10) - 5;
+                        currentLatency = Math.max(15, Math.min(120, currentLatency + latDelta));
+                        elLatency.textContent = currentLatency + " ms";
+
+                        // Increment Total
+                        totalProcessed += currentRecords * 2; // Approximate addition for 2s window
+                        elProcessed.textContent = totalProcessed.toLocaleString();
+                    }, 2000);
+                });
+            </script>
         </section>
 
         <!-- Technology Stack -->
@@ -467,7 +843,7 @@
 
     <!-- Footer -->
     <footer class="landing-footer">
-        <div style="margin-bottom: 1rem; font-weight: 600; color: var(--brand-navy); font-size: 1.25rem;">Streamo</div>
+        <div style="margin-bottom: 1rem;"><img src="/assets/logos/streamo.svg" alt="Streamo Logo" style="height: 32px; width: auto;"></div>
         <p style="margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto;">A real-time data
             engineering and analytics platform for ingesting, processing, validating, and analyzing streaming data.</p>
         <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem;">

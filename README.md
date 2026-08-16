@@ -78,16 +78,31 @@ curl -X POST "http://localhost:8000/api/v1/sources/" \
 
 ## Deployment
 
-### Local / Full Stack
-Streamo can be run locally using Docker Compose as shown in the Quick Start section. This is the complete data engineering pipeline with Kafka, Spark, Postgres, MinIO, and Airflow.
+### Public Demo
+Render hosts the Streamo web application/API layer (FastAPI Control Plane + UI). This public demo is ideal for showcasing the dashboard. Do not claim that the full Docker Compose stack runs on Render—Render only hosts the web application layer.
 
-### AWS EC2
-Streamo has been successfully deployed and tested on an AWS EC2 instance. The entire stack runs within a single sufficiently-sized instance using Docker Compose. 
-*Note: The EC2 deployment is not guaranteed to be permanently online. Because this is a demonstration environment, the instance may be stopped when not in active use to avoid unnecessary cloud computing costs.*
+### Full Stack
+Docker Compose runs the complete Streamo data engineering platform. This includes Kafka, Spark, PostgreSQL, MinIO, Airflow, and Grafana. This architecture is meant to run on a local machine or a dedicated VM (like AWS EC2).
 
-### Render Public Demo
-The Streamo web dashboard and API (Control Plane) can be deployed to Render for public demonstration. This deployment requires an external managed PostgreSQL database and relies on the local/EC2 backend for actual data processing.
-- See the [Render Deployment Guide](docs/deployment/render.md) for full instructions.
+### Local
+To run the full stack locally:
+```bash
+docker compose up -d
+```
+
+### Render
+The Render configuration requires setting up a Web Service.
+- **Repository:** Mani2815/Streamo
+- **Branch:** main
+- **Root Directory:** (leave blank)
+- **Runtime:** Docker
+- **Dockerfile Path:** `./Dockerfile.render`
+- **Health Check Path:** `/health`
+
+**Environment Variables:**
+- `DATABASE_URL`: (Optional but recommended) The connection string to a publicly accessible PostgreSQL database (e.g. Supabase, Render Postgres) to allow the dashboard to function fully. The web service will gracefully start even if this is not provided, but data will be unavailable.
+
+See the [Render Deployment Guide](docs/deployment/render.md) for full instructions.
 
 ## Limitations
 - Streamo currently runs on a single Docker Compose network. While the architecture is designed to scale horizontally across multiple nodes (Kafka cluster, Spark cluster), local deployment is restricted by Docker Desktop memory limits (Recommended: 8GB RAM).

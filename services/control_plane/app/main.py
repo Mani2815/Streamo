@@ -5,7 +5,11 @@ import os
 from fastapi.staticfiles import StaticFiles
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+if engine:
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Warning: Could not create database tables. DB might be unavailable. {e}")
 
 app = FastAPI(
     title="Streamo Control Plane API",
