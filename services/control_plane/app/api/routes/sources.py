@@ -13,6 +13,7 @@ from confluent_kafka.admin import AdminClient, NewTopic
 
 router = APIRouter()
 KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+STREAMO_DEPLOYMENT_MODE = os.environ.get("STREAMO_DEPLOYMENT_MODE", "full").lower()
 
 def infer_schema(data: Any) -> Dict[str, str]:
     schema = {}
@@ -74,23 +75,47 @@ def create_source(source: schemas.SourceCreate, db: Session = Depends(get_db)):
     if db_source:
         raise HTTPException(status_code=400, detail="Source already registered")
     
-    # We should validate to save the schema
-    new_source = models.Source(
-        name=source.name,
-        url=str(source.url),
-        poll_interval=source.poll_interval,
-        status="active"
-    )
-    db.add(new_source)
-    db.commit()
-    db.refresh(new_source)
-    
-    ensure_topic_exists(new_source.name)
-    return new_source
+    if STREAMO_DEPLOYMENT_MODE == "demo":
+        new_source = models.Source(
+            name=source.name,
+            url=str(source.url),
+            poll_interval=source.poll_interval,
+            status="configured"
+        )
+        db.add(new_source)
+        db.commit()
+        db.refresh(new_source)
+        # In demo mode, skip Kafka topic creation
+        new_source.mode = "demo"
+        new_source.message = "Source configured for public demo. Live ingestion requires the full Streamo pipeline."
+        return new_source
+    else:
+        new_source = models.Source(
+            name=source.name,
+            url=str(source.url),
+            poll_interval=source.poll_interval,
+            status="active"
+        )
+        db.add(new_source)
+        db.commit()
+        db.refresh(new_source)
+        
+        try:
+            ensure_topic_exists(new_source.name)
+        except Exception as e:
+            # Revert if Kafka completely fails to avoid dangling sources
+            db.delete(new_source)
+            db.commit()
+            raise HTTPException(status_code=500, detail=f"Failed to create Kafka topic: {e}")
+            
+        new_source.mode = "full"
+        return new_source
 
 @router.get("/", response_model=List[schemas.Source])
 def get_sources(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     sources = db.query(models.Source).offset(skip).limit(limit).all()
+    for source in sources:
+        source.mode = STREAMO_DEPLOYMENT_MODE
     return sources
 
 @router.get("/{id}", response_model=schemas.Source)
@@ -98,6 +123,7 @@ def get_source(id: int, db: Session = Depends(get_db)):
     source = db.query(models.Source).filter(models.Source.id == id).first()
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
+    source.mode = STREAMO_DEPLOYMENT_MODE
     return source
 
 def ensure_topic_exists(source_name: str):
@@ -118,24 +144,25 @@ def ensure_topic_exists(source_name: str):
 @router.post("/{id}/start")
 def start_source(id: int, db: Session = Depends(get_db)):
     source = get_source(id, db)
-    source.status = "active"
+    source.status = "active" if STREAMO_DEPLOYMENT_MODE == "full" else "configured"
     db.commit()
-    ensure_topic_exists(source.name)
-    return {"status": "active"}
+    if STREAMO_DEPLOYMENT_MODE == "full":
+        ensure_topic_exists(source.name)
+    return {"status": source.status, "mode": STREAMO_DEPLOYMENT_MODE}
 
 @router.post("/{id}/pause")
 def pause_source(id: int, db: Session = Depends(get_db)):
     source = get_source(id, db)
     source.status = "paused"
     db.commit()
-    return {"status": "paused"}
+    return {"status": "paused", "mode": STREAMO_DEPLOYMENT_MODE}
 
 @router.post("/{id}/stop")
 def stop_source(id: int, db: Session = Depends(get_db)):
     source = get_source(id, db)
     source.status = "stopped"
     db.commit()
-    return {"status": "stopped"}
+    return {"status": "stopped", "mode": STREAMO_DEPLOYMENT_MODE}
 
 def calculate_iqr_anomalies(values: List[float]) -> int:
     if not values or len(values) < 4:

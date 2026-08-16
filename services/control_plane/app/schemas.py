@@ -16,6 +16,8 @@ class Source(SourceBase):
     status: str
     created_at: datetime
     updated_at: datetime
+    mode: Optional[str] = None
+    message: Optional[str] = None
 
     class Config:
         from_attributes = True

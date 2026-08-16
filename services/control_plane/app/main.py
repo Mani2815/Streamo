@@ -32,7 +32,12 @@ def health_check():
             db_status = "connected"
         except Exception:
             db_status = "error"
-    return {"status": "ok", "service": "streamo-control-plane", "database": db_status}
+    return {
+        "status": "ok", 
+        "service": "streamo-control-plane", 
+        "database": db_status,
+        "mode": os.environ.get("STREAMO_DEPLOYMENT_MODE", "full").lower()
+    }
 
 frontend_path = "/frontend" if os.path.exists("/frontend") else os.path.join(os.path.dirname(__file__), "../../../frontend")
 if os.path.exists(frontend_path):

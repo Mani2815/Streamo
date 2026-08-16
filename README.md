@@ -100,6 +100,7 @@ The Render configuration requires setting up a Web Service.
 
 **Environment Variables:**
 - `DATABASE_URL`: (Required) The connection string to a publicly accessible PostgreSQL database (e.g., Supabase) to allow the dashboard to function fully. The web service will gracefully start even if this is not provided, but data will be unavailable.
+- `STREAMO_DEPLOYMENT_MODE`: Set to `demo`. This prevents the public API from attempting to communicate with offline Kafka/Spark services, avoiding 500 Server Errors when configuring sources.
 
 **Seeding Demo Data:**
 For the public dashboard, you can inject sample data into your Supabase database using the included script:
