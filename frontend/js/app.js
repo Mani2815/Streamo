@@ -5,17 +5,8 @@ let currentSchema = {};
 let currentPollInterval = null;
 let currentView = 'overview';
 
-let currentDeploymentMode = 'full';
-
 const app = {
-    async init() {
-        try {
-            const healthRes = await fetch('/health');
-            if (healthRes.ok) {
-                const health = await healthRes.json();
-                currentDeploymentMode = health.mode || 'full';
-            }
-        } catch(e) {}
+    init() {
         this.setupNavigation();
         this.loadGlobalSources(); // Load once for global selector
         this.navigate('overview');
@@ -157,36 +148,23 @@ const app = {
                     }
                 } catch (err) {} // ignore individual failures
                 
+                let badgeClass = 'neutral';
                 if (src.status === 'active') badgeClass = 'active';
                 if (src.status === 'paused') badgeClass = 'paused';
                 if (src.status === 'error') badgeClass = 'error';
                 if (src.status === 'stopped') badgeClass = 'stopped';
-                if (src.status === 'configured') badgeClass = 'neutral';
-                
-                let displayStatus = src.status;
-                if (src.status === 'configured' && currentDeploymentMode === 'demo') {
-                    displayStatus = 'demo mode';
-                }
                 
                 tbody.innerHTML += `
                     <tr style="cursor:pointer;" onclick="app.viewSourceDetails(${src.id})">
                         <td><strong>${src.name}</strong></td>
                         <td style="font-family: monospace; font-size: 0.8em;">${src.url}</td>
-                        <td><span class="badge ${badgeClass}">${displayStatus.toUpperCase()}</span></td>
+                        <td><span class="badge ${badgeClass}">${src.status}</span></td>
                     </tr>
                 `;
             }
             
             document.getElementById('ov-total-records').innerText = totalRecords.toLocaleString();
-            
-            if (currentDeploymentMode === 'demo' && totalRecords === 0) {
-                document.getElementById('ov-total-records').innerText = '0';
-                document.getElementById('ov-avg-quality').innerText = '—';
-                const ctx = document.querySelector('#ov-total-records').nextElementSibling;
-                if (ctx) ctx.innerText = 'PUBLIC DEMO: Waiting for streaming pipeline';
-            } else {
-                document.getElementById('ov-avg-quality').innerText = qualitySources ? (totalQuality / qualitySources).toFixed(1) + '%' : '—';
-            }
+            document.getElementById('ov-avg-quality').innerText = qualitySources ? (totalQuality / qualitySources).toFixed(1) + '%' : '—';
             
             this.toggleSkeletons('overview', false);
         } catch (e) {
@@ -216,17 +194,11 @@ const app = {
                 if (src.status === 'active') badgeClass = 'active';
                 if (src.status === 'paused') badgeClass = 'paused';
                 if (src.status === 'stopped') badgeClass = 'stopped';
-                if (src.status === 'configured') badgeClass = 'neutral';
-                
-                let displayStatus = src.status;
-                if (src.status === 'configured' && currentDeploymentMode === 'demo') {
-                    displayStatus = 'demo mode';
-                }
                 
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${src.name}</strong></td>
-                        <td><span class="badge ${badgeClass}">${displayStatus.toUpperCase()}</span></td>
+                        <td><span class="badge ${badgeClass}">${src.status.toUpperCase()}</span></td>
                         <td>${src.poll_interval}s</td>
                         <td>${date}</td>
                         <td><button class="btn secondary" onclick="app.viewSourceDetails(${src.id})">Manage</button></td>
@@ -250,40 +222,12 @@ const app = {
             document.getElementById('sd-title').innerText = source.name;
             
             const statusEl = document.getElementById('sd-status');
-            let badgeClass = 'neutral';
-            if (source.status === 'active') badgeClass = 'active';
-            if (source.status === 'paused') badgeClass = 'paused';
-            if (source.status === 'stopped') badgeClass = 'stopped';
-            statusEl.className = `badge ${badgeClass}`;
-            
-            let displayStatus = source.status;
-            if (source.status === 'configured' && currentDeploymentMode === 'demo') {
-                displayStatus = 'demo mode';
-            }
-            statusEl.innerText = displayStatus.toUpperCase();
+            statusEl.className = `badge ${source.status === 'active' ? 'active' : (source.status === 'paused' ? 'paused' : 'stopped')}`;
+            statusEl.innerText = source.status.toUpperCase();
             
             document.getElementById('sd-url').innerText = source.url;
             document.getElementById('sd-interval').innerText = `${source.poll_interval} sec`;
-            
-            const topicEl = document.getElementById('sd-topic');
-            if (currentDeploymentMode === 'demo') {
-                topicEl.innerText = "Not Created (Demo Mode)";
-                topicEl.style.backgroundColor = "transparent";
-                document.getElementById('sd-topology').innerHTML = `
-                    <li><span>API Endpoint</span> <span class="badge neutral">Configured</span></li>
-                    <li><span>PostgreSQL Table</span> <span class="badge active">Active</span></li>
-                    <li><span style="color:var(--text-muted)">Kafka Topic (Live Only)</span> <span class="badge neutral">Offline</span></li>
-                    <li><span style="color:var(--text-muted)">Spark Streaming (Live Only)</span> <span class="badge neutral">Offline</span></li>
-                `;
-            } else {
-                topicEl.innerText = `streamo.raw.${source.name}`;
-                document.getElementById('sd-topology').innerHTML = `
-                    <li><span>Ingestion Worker</span> <span class="badge active">Active</span></li>
-                    <li><span>Kafka Topic (<code style="background: var(--bg-secondary); padding: 0.1rem 0.3rem; border-radius: 4px;" id="sd-topic">streamo.raw.${source.name}</code>)</span> <span class="badge active">Active</span></li>
-                    <li><span>Spark Streaming Job</span> <span class="badge active">Active</span></li>
-                    <li><span>PostgreSQL Table</span> <span class="badge active">Active</span></li>
-                `;
-            }
+            document.getElementById('sd-topic').innerText = `streamo.raw.${source.name}`;
             
         } catch(e) {
             console.error(e);
@@ -363,27 +307,15 @@ const app = {
                 body: JSON.stringify({ name, url, poll_interval })
             });
             if (res.ok) {
-                try {
-                    const data = await res.json();
-                    if (data.message) {
-                        alert(data.message);
-                    } else {
-                        alert("Source configured successfully.");
-                    }
-                } catch(e) {} // Ignore json parse errors on success if any
                 // Navigate to sources and refresh global source dropdowns
                 await this.loadGlobalSources();
                 this.navigate('sources');
             } else {
-                let errMessage = "Failed to connect source.";
-                try {
-                    const err = await res.json();
-                    if (err.detail) errMessage = "Error: " + err.detail;
-                } catch(e) {} // Gracefully handle non-JSON 500s
-                alert(errMessage);
+                const err = await res.json();
+                alert("Error: " + err.detail);
             }
         } catch (e) {
-            alert("Failed to connect source. Network error.");
+            alert("Failed to connect source.");
         }
     },
 

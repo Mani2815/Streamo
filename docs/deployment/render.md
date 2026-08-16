@@ -28,7 +28,6 @@ The following environment variables should be configured in your Render dashboar
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | The connection string for your managed PostgreSQL database (e.g., Supabase). Do not use local Docker credentials. |
-| `STREAMO_DEPLOYMENT_MODE` | Yes | Set to `demo`. This disables live Kafka ingestion and prevents `500 Server Error`s when clicking "Add Source". The application will instead save sources to the database and gracefully display a "demo mode" UI status without falsifying ingestion metrics. |
 
 ## Build Process & Dockerfile
 The repository contains `./Dockerfile.render` located at the root. This Dockerfile:
