@@ -22,7 +22,17 @@ app.include_router(serving.router, prefix="/api/v1/serving", tags=["Serving"])
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "streamo-control-plane"}
+    from sqlalchemy import text
+    from .database import engine
+    db_status = "disconnected"
+    if engine:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            db_status = "connected"
+        except Exception:
+            db_status = "error"
+    return {"status": "ok", "service": "streamo-control-plane", "database": db_status}
 
 frontend_path = "/frontend" if os.path.exists("/frontend") else os.path.join(os.path.dirname(__file__), "../../../frontend")
 if os.path.exists(frontend_path):

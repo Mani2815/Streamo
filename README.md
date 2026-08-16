@@ -78,8 +78,8 @@ curl -X POST "http://localhost:8000/api/v1/sources/" \
 
 ## Deployment
 
-### Public Demo
-Render hosts the Streamo web application/API layer (FastAPI Control Plane + UI). This public demo is ideal for showcasing the dashboard. Do not claim that the full Docker Compose stack runs on Render—Render only hosts the web application layer.
+### Render (Public Demo)
+Render hosts the Streamo web application/API layer (FastAPI Control Plane + UI) backed by an external Supabase PostgreSQL database. This public demo is ideal for showcasing the dashboard. Do not claim that the full Docker Compose stack runs on Render—Render only hosts the web application layer.
 
 ### Full Stack
 Docker Compose runs the complete Streamo data engineering platform. This includes Kafka, Spark, PostgreSQL, MinIO, Airflow, and Grafana. This architecture is meant to run on a local machine or a dedicated VM (like AWS EC2).
@@ -90,7 +90,6 @@ To run the full stack locally:
 docker compose up -d
 ```
 
-### Render
 The Render configuration requires setting up a Web Service.
 - **Repository:** Mani2815/Streamo
 - **Branch:** main
@@ -100,7 +99,14 @@ The Render configuration requires setting up a Web Service.
 - **Health Check Path:** `/health`
 
 **Environment Variables:**
-- `DATABASE_URL`: (Optional but recommended) The connection string to a publicly accessible PostgreSQL database (e.g. Supabase, Render Postgres) to allow the dashboard to function fully. The web service will gracefully start even if this is not provided, but data will be unavailable.
+- `DATABASE_URL`: (Required) The connection string to a publicly accessible PostgreSQL database (e.g., Supabase) to allow the dashboard to function fully. The web service will gracefully start even if this is not provided, but data will be unavailable.
+
+**Seeding Demo Data:**
+For the public dashboard, you can inject sample data into your Supabase database using the included script:
+```bash
+export DATABASE_URL="postgresql://[USER]:[PASSWORD]@[HOST]:[PORT]/[DB]"
+python3 scripts/seed_demo_data.py
+```
 
 See the [Render Deployment Guide](docs/deployment/render.md) for full instructions.
 
