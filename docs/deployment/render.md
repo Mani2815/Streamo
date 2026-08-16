@@ -28,6 +28,12 @@ The following environment variables should be configured in your Render dashboar
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | The connection string for your managed PostgreSQL database (e.g., Supabase). Do not use local Docker credentials. |
+| `KAFKA_BOOTSTRAP_SERVERS` | Yes | Required if you wish to actually add sources from the Render UI. You must provide a reachable external Kafka cluster (e.g., Confluent Cloud). |
+
+> [!WARNING]
+> The Streamo architecture relies on a continuous ingestion poller, Kafka, and Spark Structured Streaming. The Render Web Service provisions only the FastAPI Control Plane and the Frontend. Unless you manually host and configure the ingestion pipeline and Kafka cluster externally, **Source Creation will correctly fail** with a 503 error indicating that the ingestion pipeline is unreachable.
+> 
+> For a complete, self-contained production deployment, we highly recommend using Docker Compose on an AWS EC2 instance.
 
 ## Build Process & Dockerfile
 The repository contains `./Dockerfile.render` located at the root. This Dockerfile:

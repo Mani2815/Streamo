@@ -85,7 +85,13 @@ def create_source(source: schemas.SourceCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_source)
     
-    ensure_topic_exists(new_source.name)
+    try:
+        ensure_topic_exists(new_source.name)
+    except Exception as e:
+        db.delete(new_source)
+        db.commit()
+        raise HTTPException(status_code=503, detail=f"Failed to connect to Kafka broker. Ensure the ingestion pipeline is running. Error: {str(e)}")
+        
     return new_source
 
 @router.get("/", response_model=List[schemas.Source])
@@ -103,24 +109,35 @@ def get_source(id: int, db: Session = Depends(get_db)):
 def ensure_topic_exists(source_name: str):
     topic_name = f"streamo.raw.{source_name}"
     try:
-        admin_client = AdminClient({'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS})
+        admin_client = AdminClient({
+            'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
+            'request.timeout.ms': 5000,
+            'socket.timeout.ms': 5000,
+            'message.timeout.ms': 5000
+        })
         new_topic = NewTopic(topic_name, num_partitions=1, replication_factor=1)
-        fs = admin_client.create_topics([new_topic])
+        # Pass operation_timeout so it fails quickly if broker is reachable but not ready
+        fs = admin_client.create_topics([new_topic], operation_timeout=5.0)
         for topic, f in fs.items():
             try:
                 f.result()  # The result itself is None
             except Exception as e:
                 if "TOPIC_ALREADY_EXISTS" not in str(e):
                     print(f"Failed to create topic {topic}: {e}")
+                    raise Exception(f"Failed to create topic: {e}")
     except Exception as e:
         print(f"Error communicating with Kafka Admin: {e}")
+        raise Exception(f"Kafka unavailable at {KAFKA_BOOTSTRAP_SERVERS}")
 
 @router.post("/{id}/start")
 def start_source(id: int, db: Session = Depends(get_db)):
     source = get_source(id, db)
     source.status = "active"
+    try:
+        ensure_topic_exists(source.name)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Failed to connect to Kafka broker. Error: {str(e)}")
     db.commit()
-    ensure_topic_exists(source.name)
     return {"status": "active"}
 
 @router.post("/{id}/pause")

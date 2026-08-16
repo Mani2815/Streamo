@@ -90,16 +90,22 @@ To run the full stack locally:
 docker compose up -d
 ```
 
-The Render configuration requires setting up a Web Service.
-- **Repository:** Mani2815/Streamo
-- **Branch:** main
-- **Root Directory:** (leave blank)
-- **Runtime:** Docker
-- **Dockerfile Path:** `./Dockerfile.render`
-- **Health Check Path:** `/health`
+### Production Deployment (AWS EC2)
 
-**Environment Variables:**
-- `DATABASE_URL`: (Required) The connection string to a publicly accessible PostgreSQL database (e.g., Supabase) to allow the dashboard to function fully. The web service will gracefully start even if this is not provided, but data will be unavailable.
+The officially supported production deployment strategy for the complete Streamo architecture is using **Docker Compose on an infrastructure platform such as AWS EC2**.
+
+Because the complete Streamo architecture relies on a true streaming ingestion pipeline (Apache Kafka and Apache Spark Structured Streaming), single-container platforms (like the Render Web Service) are NOT recommended as they cannot natively orchestrate the required background services without significant modification or relying on external managed clusters.
+
+To deploy the full production architecture:
+1. Provision an AWS EC2 instance (e.g., t3.large or larger due to Spark/Kafka memory requirements).
+2. Install Docker and Docker Compose.
+3. Clone this repository and configure `.env`.
+4. Run `docker compose up -d`
+5. The `control-plane` will automatically establish connections with the ingestion poller, Kafka, and Spark.
+
+### Testing and Development (Render)
+
+If you have deployed the FastAPI backend to a service like Render for testing the UI, be aware that **live source ingestion will fail** unless you explicitly point `KAFKA_BOOTSTRAP_SERVERS` and `DATABASE_URL` to externally hosted, publicly reachable clusters (e.g., Confluent Cloud and Supabase).
 
 **Seeding Demo Data:**
 For the public dashboard, you can inject sample data into your Supabase database using the included script:

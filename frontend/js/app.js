@@ -311,11 +311,17 @@ const app = {
                 await this.loadGlobalSources();
                 this.navigate('sources');
             } else {
-                const err = await res.json();
-                alert("Error: " + err.detail);
+                let errMessage = "Failed to connect source.";
+                try {
+                    const err = await res.json();
+                    if (err.detail) errMessage = err.detail;
+                } catch(e) {
+                    errMessage += ` HTTP ${res.status}`;
+                }
+                alert("Error: " + errMessage);
             }
         } catch (e) {
-            alert("Failed to connect source.");
+            alert("Failed to connect source. Please check your network connection.");
         }
     },
 
