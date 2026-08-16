@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+# Set working directory to project root equivalent
+WORKDIR /streamo
+
+# Install dependencies first for Docker caching
+COPY services/control_plane/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy FastAPI app code
+COPY services/control_plane/app/ ./app/
+
+# Copy Frontend code (will be served statically by FastAPI)
+COPY frontend/ /frontend/
+
+# Start Uvicorn, mapping $PORT for Render and falling back to 8000 locally
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

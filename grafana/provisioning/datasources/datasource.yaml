@@ -5,10 +5,10 @@ datasources:
     type: postgres
     access: proxy
     url: postgres:5432
-    user: streamo_user
-    database: streamo
+    user: ${POSTGRES_USER}
+    database: ${STREAMO_DB}
     secureJsonData:
-      password: streamo_password
+      password: ${POSTGRES_PASSWORD}
     jsonData:
       sslmode: 'disable'
       postgresVersion: 1500

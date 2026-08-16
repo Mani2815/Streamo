@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: streamo-web
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        sync: false

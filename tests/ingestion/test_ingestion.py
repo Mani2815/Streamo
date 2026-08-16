@@ -5,12 +5,14 @@ from app.models import EventEnvelope
 import httpx
 import time
 
+import json
+
 def test_event_envelope_generation():
     payload = {"id": 1, "temperature": 28.5, "humidity": 72}
-    envelope = EventEnvelope(source="test", payload=payload)
+    envelope = EventEnvelope(source="test", payload=json.dumps(payload))
     
     assert envelope.source == "test"
-    assert envelope.payload == payload
+    assert envelope.payload == json.dumps(payload)
     assert envelope.event_id is not None
     assert envelope.ingested_at is not None
 
@@ -75,7 +77,7 @@ def test_kafka_producer(mock_producer_class):
     from app.kafka_producer import StreamoKafkaProducer
     producer = StreamoKafkaProducer()
     
-    envelope = EventEnvelope(source="test", payload={"data": 1})
+    envelope = EventEnvelope(source="test", payload='{"data": 1}')
     producer.publish_event(envelope)
     
     mock_producer.produce.assert_called_once()

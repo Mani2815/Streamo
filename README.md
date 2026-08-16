@@ -76,6 +76,19 @@ curl -X POST "http://localhost:8000/api/v1/sources/" \
 - [Performance & Profiling](docs/PERFORMANCE.md)
 - [Operations Guide](docs/OPERATIONS.md)
 
+## Deployment
+
+### Local / Full Stack
+Streamo can be run locally using Docker Compose as shown in the Quick Start section. This is the complete data engineering pipeline with Kafka, Spark, Postgres, MinIO, and Airflow.
+
+### AWS EC2
+Streamo has been successfully deployed and tested on an AWS EC2 instance. The entire stack runs within a single sufficiently-sized instance using Docker Compose. 
+*Note: The EC2 deployment is not guaranteed to be permanently online. Because this is a demonstration environment, the instance may be stopped when not in active use to avoid unnecessary cloud computing costs.*
+
+### Render Public Demo
+The Streamo web dashboard and API (Control Plane) can be deployed to Render for public demonstration. This deployment requires an external managed PostgreSQL database and relies on the local/EC2 backend for actual data processing.
+- See the [Render Deployment Guide](docs/deployment/render.md) for full instructions.
+
 ## Limitations
 - Streamo currently runs on a single Docker Compose network. While the architecture is designed to scale horizontally across multiple nodes (Kafka cluster, Spark cluster), local deployment is restricted by Docker Desktop memory limits (Recommended: 8GB RAM).
 - The pipeline intentionally does not implement ML/AI features, multi-tenancy, or billing, maintaining strict focus on core Data Engineering fundamentals.

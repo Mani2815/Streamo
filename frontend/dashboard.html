@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamo - Data Engineering Platform</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>Streamo</h2>
+                <p>Data Platform</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#overview" class="active" data-route="overview">Overview</a></li>
+                <li><a href="#sources" data-route="sources">Sources</a></li>
+                <li><a href="#analytics" data-route="analytics">Analytics</a></li>
+                <li><a href="#quality" data-route="quality">Data Quality</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-area">
+            
+            <!-- Global Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 class="page-title" id="global-page-title">Overview</h1>
+                </div>
+                <div class="header-right">
+                    <!-- Global Source Selector (Visible only on specific pages) -->
+                    <div class="global-source-selector hidden" id="global-source-selector-container">
+                        <label for="global-source-select">Source</label>
+                        <select id="global-source-select" onchange="app.handleGlobalSourceChange()">
+                            <option value="">Select a source...</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="content-inner">
+
+                    <!-- Overview View -->
+                    <section id="view-overview" class="view active">
+                        <div class="view-header">
+                            <div>
+                                <h1>Pipeline Overview</h1>
+                                <p class="view-description">Real-time health and activity across your data pipelines</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3>Active Sources</h3>
+                                <div id="ov-kpi-sources" class="skeleton skeleton-kpi hidden"></div>
+                                <p id="ov-active-sources">0</p>
+                                <div class="stat-context" id="ov-total-configured">of 0 configured</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Records</h3>
+                                <div id="ov-kpi-records" class="skeleton skeleton-kpi hidden"></div>
+                                <p id="ov-total-records">0</p>
+                                <div class="stat-context">across all pipelines</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Avg Quality Rate</h3>
+                                <div id="ov-kpi-quality" class="skeleton skeleton-kpi hidden"></div>
+                                <p id="ov-avg-quality">0%</p>
+                                <div class="stat-context">moving average</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Pipeline Health</h3>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Source</th>
+                                            <th>Endpoint</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ov-sources-body">
+                                        <!-- populated by js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Add Source View -->
+                    <section id="view-add-source" class="view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Add Data Source</h1>
+                                <p class="view-description">Connect a new API endpoint to the ingestion pipeline</p>
+                            </div>
+                            <button class="btn secondary" onclick="app.navigate('sources')">Cancel</button>
+                        </div>
+                        <div class="card" style="max-width: 600px;">
+                            <form id="add-source-form" onsubmit="event.preventDefault(); app.validateSource();">
+                                <div class="form-group">
+                                    <label>Source Name</label>
+                                    <input type="text" id="add-name" required placeholder="e.g., weather-api">
+                                </div>
+                                <div class="form-group">
+                                    <label>API URL</label>
+                                    <input type="url" id="add-url" required placeholder="https://api.example.com/data">
+                                </div>
+                                <div class="form-group">
+                                    <label>Polling Interval (sec)</label>
+                                    <input type="number" id="add-interval" value="60" required min="1">
+                                </div>
+                                <button type="submit" class="btn primary">Validate & Analyze Schema</button>
+                            </form>
+                            
+                            <div id="validation-result" class="hidden mt-2">
+                                <h3 class="card-title mb-2">Validation Status</h3>
+                                <ul class="insights-list mb-4" id="validation-list">
+                                    <!-- populated by js -->
+                                </ul>
+                                <div id="schema-detected" class="hidden mb-4">
+                                    <h4 class="card-title mb-2">Detected Fields</h4>
+                                    <table class="data-table">
+                                        <thead><tr><th>Field</th><th>Type</th></tr></thead>
+                                        <tbody id="schema-body"></tbody>
+                                    </table>
+                                </div>
+                                <button id="btn-connect" class="btn success hidden" onclick="app.connectSource()">Connect Data Source</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Sources View -->
+                    <section id="view-sources" class="view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Data Sources</h1>
+                                <p class="view-description">Manage connected API endpoints and streaming ingestion</p>
+                            </div>
+                            <button class="btn primary" onclick="app.navigate('add-source')">+ Add Data Source</button>
+                        </div>
+                        <div class="card">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Interval</th>
+                                            <th>Created At</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="src-table-body">
+                                        <!-- populated by js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Source Details View -->
+                    <section id="view-source-details" class="view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Source Configuration</h1>
+                                <p class="view-description" id="sd-title">Details</p>
+                            </div>
+                            <button class="btn secondary" onclick="app.navigate('sources')">Back to Sources</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-header" style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                                <span id="sd-status" class="badge neutral">Loading...</span>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button id="btn-sd-start" class="btn success" onclick="app.startSource()">Start Pipeline</button>
+                                    <button id="btn-sd-pause" class="btn warning" onclick="app.pauseSource()">Pause</button>
+                                    <button id="btn-sd-stop" class="btn danger" onclick="app.stopSource()">Stop</button>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                                <div>
+                                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.25rem;">Endpoint URL</p>
+                                    <p style="font-weight: 500; font-family: monospace;" id="sd-url">-</p>
+                                </div>
+                                <div>
+                                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.25rem;">Polling Interval</p>
+                                    <p style="font-weight: 500;" id="sd-interval">-</p>
+                                </div>
+                            </div>
+                            
+                            <h3 class="card-title mb-2">Infrastructure Topology</h3>
+                            <ul class="insights-list" style="background: var(--bg-primary); padding: 1rem; border-radius: 8px;">
+                                <li><span>Ingestion Worker</span> <span class="badge active">Active</span></li>
+                                <li><span>Kafka Topic (<code style="background: var(--bg-secondary); padding: 0.1rem 0.3rem; border-radius: 4px;" id="sd-topic">-</code>)</span> <span class="badge active">Active</span></li>
+                                <li><span>Spark Streaming Job</span> <span class="badge active">Active</span></li>
+                                <li><span>PostgreSQL Table</span> <span class="badge active">Active</span></li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <!-- Analytics View -->
+                    <section id="view-analytics" class="view">
+                        <!-- Global Header Handles Title and Selection -->
+                        
+                        <!-- Empty State -->
+                        <div id="analytics-empty" class="empty-state">
+                            <div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
+                            <h2 class="empty-state-title">No Source Selected</h2>
+                            <p class="empty-state-desc">Select an active data source from the dropdown above to view real-time metrics, trends, and recent records.</p>
+                        </div>
+                        
+                        <div id="analytics-content" class="hidden">
+                            <!-- KPIs -->
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <h3>Records Processed</h3>
+                                    <div id="skel-kpi-rec" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="kpi-total-records">0</p>
+                                </div>
+                                <div class="stat-card">
+                                    <h3>Quality Score</h3>
+                                    <div id="skel-kpi-qual" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="kpi-quality-rate">0%</p>
+                                </div>
+                                <div class="stat-card">
+                                    <h3>Data Freshness</h3>
+                                    <div id="skel-kpi-fresh" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="kpi-freshness">-</p>
+                                </div>
+                                <div class="stat-card">
+                                    <h3>Throughput</h3>
+                                    <div id="skel-kpi-rate" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="kpi-ingestion-rate">0 /s</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                                <!-- Charts Area -->
+                                <div>
+                                    <h2 class="card-title mb-2">Metric Trends</h2>
+                                    <div id="skel-charts" class="skeleton skeleton-chart hidden" style="margin-bottom: 1.5rem;"></div>
+                                    <div class="charts-grid" id="analytics-charts" style="grid-template-columns: 1fr;">
+                                        <!-- Canvas charts injected dynamically -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Side Analytics -->
+                                <div>
+                                    <div class="card">
+                                        <h2 class="card-title mb-2">System Insights</h2>
+                                        <div id="skel-insights" class="skeleton skeleton-text hidden" style="height: 100px;"></div>
+                                        <ul id="insights-list" class="insights-list">
+                                            <!-- populated by js -->
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="card">
+                                        <h2 class="card-title mb-2">Statistical Summary</h2>
+                                        <div id="skel-summary" class="skeleton skeleton-text hidden" style="height: 100px;"></div>
+                                        <div id="metric-summary-grid" class="metric-summary-grid" style="grid-template-columns: 1fr;">
+                                            <!-- populated by js -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Latest Records -->
+                            <div class="card">
+                                <h2 class="card-title mb-2">Latest Received Records</h2>
+                                <div id="skel-records" class="skeleton skeleton-text hidden" style="height: 150px;"></div>
+                                <div class="table-container" id="records-container">
+                                    <table class="data-table">
+                                        <thead id="records-head"></thead>
+                                        <tbody id="records-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Quality View -->
+                    <section id="view-quality" class="view">
+                        <!-- Global Header Handles Title and Selection -->
+                        
+                        <div id="quality-empty" class="empty-state">
+                            <div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                            <h2 class="empty-state-title">No Source Selected</h2>
+                            <p class="empty-state-desc">Select an active data source from the dropdown above to inspect data quality, constraint violations, and valid record distributions.</p>
+                        </div>
+                        
+                        <!-- Quality Error State -->
+                        <div id="quality-error" class="empty-state hidden">
+                            <div class="empty-state-icon" style="color: var(--danger);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
+                            <h2 class="empty-state-title">Unable to load data quality</h2>
+                            <p class="empty-state-desc">An error occurred while communicating with the Streamo API.</p>
+                            <button class="btn secondary" style="margin-top: 1rem;" onclick="app.loadQuality()">Retry</button>
+                        </div>
+                        
+                        <!-- Quality No Data State -->
+                        <div id="quality-no-data" class="empty-state hidden">
+                            <div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
+                            <h2 class="empty-state-title">No data available</h2>
+                            <p class="empty-state-desc">This source hasn't produced any records yet.</p>
+                            <button class="btn secondary" style="margin-top: 1rem;" onclick="app.loadQuality()">Refresh</button>
+                        </div>
+                        
+                        <div id="quality-content" class="hidden">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <h3>Quality Rate</h3>
+                                    <div id="dq-skel-rate" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="dq-rate">0%</p>
+                                </div>
+                                <div class="stat-card">
+                                    <h3>Valid Records</h3>
+                                    <div id="dq-skel-valid" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="dq-valid">0</p>
+                                </div>
+                                <div class="stat-card">
+                                    <h3>Invalid Records</h3>
+                                    <div id="dq-skel-invalid" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="dq-invalid">0</p>
+                                </div>
+                                <div class="stat-card">
+                                    <h3>Total Records</h3>
+                                    <div id="dq-skel-total" class="skeleton skeleton-kpi hidden"></div>
+                                    <p id="dq-total">0</p>
+                                </div>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                                    <div class="card">
+                                        <h2 class="card-title mb-2">Quality Trend</h2>
+                                        <div class="limited-data-state">
+                                            <div class="limited-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+                                            <h3 style="color: var(--brand-navy); font-size: 1.1rem; margin-bottom: 0.5rem;">Historical Trends Unavailable</h3>
+                                            <p style="color: var(--text-secondary); line-height: 1.5; font-size: 0.9rem;">The backend API currently exposes only the latest aggregate quality metrics. Time-series data is required to visualize this trend.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card">
+                                        <h2 class="card-title mb-2">Quality Issues Log</h2>
+                                        <div class="limited-data-state">
+                                            <div class="limited-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+                                            <h3 style="color: var(--brand-navy); font-size: 1.1rem; margin-bottom: 0.5rem;">Row-Level Details Unavailable</h3>
+                                            <p style="color: var(--text-secondary); line-height: 1.5; font-size: 0.9rem;">The API provides aggregate violation counts but does not expose specific fields, severity, or affected record identifiers.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card" id="dq-breakdown-card">
+                                    <h2 class="card-title mb-4">Quality Issue Breakdown</h2>
+                                    
+                                    <div class="progress-group">
+                                        <div class="progress-label">
+                                            <span>Missing Values (Nulls)</span>
+                                            <span id="dq-nulls-text">0</span>
+                                        </div>
+                                        <div class="progress-track">
+                                            <div id="dq-nulls-bar" class="progress-bar warning" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progress-group">
+                                        <div class="progress-label">
+                                            <span>Out of Range</span>
+                                            <span id="dq-ranges-text">0</span>
+                                        </div>
+                                        <div class="progress-track">
+                                            <div id="dq-ranges-bar" class="progress-bar danger" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progress-group">
+                                        <div class="progress-label">
+                                            <span>Invalid Format</span>
+                                            <span id="dq-formats-text">0</span>
+                                        </div>
+                                        <div class="progress-track">
+                                            <div id="dq-formats-bar" class="progress-bar danger" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progress-group">
+                                        <div class="progress-label">
+                                            <span>Duplicate Records</span>
+                                            <span id="dq-duplicates-text">0</span>
+                                        </div>
+                                        <div class="progress-track">
+                                            <div id="dq-duplicates-bar" class="progress-bar warning" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/js/app.js"></script>
+</body>
+</html>
