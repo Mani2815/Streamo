@@ -21,6 +21,8 @@ services:
       mountPath: /var/lib/kafka/data
       sizeGB: 1
     envVars:
+      - key: PORT
+        value: '9092'
       - key: KAFKA_NODE_ID
         value: '1'
       - key: KAFKA_PROCESS_ROLES
