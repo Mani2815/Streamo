@@ -12,7 +12,12 @@ from ...database import get_db
 from confluent_kafka.admin import AdminClient, NewTopic
 
 router = APIRouter()
-KAFKA_BOOTSTRAP_SERVERS = os.environ.get("RENDER_KAFKA_URL", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092"))
+_render_host = os.environ.get("RENDER_KAFKA_HOST")
+_render_port = os.environ.get("RENDER_KAFKA_PORT")
+if _render_host and _render_port:
+    KAFKA_BOOTSTRAP_SERVERS = f"{_render_host}:{_render_port}"
+else:
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092")
 
 def infer_schema(data: Any) -> Dict[str, str]:
     schema = {}

@@ -7,11 +7,16 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
-      - key: RENDER_KAFKA_URL
+      - key: RENDER_KAFKA_HOST
         fromService:
           type: pserv
           name: streamo-kafka
-          property: hostport
+          property: host
+      - key: RENDER_KAFKA_PORT
+        fromService:
+          type: pserv
+          name: streamo-kafka
+          property: port
       - key: PORT
         value: 10000
 
@@ -87,11 +92,16 @@ services:
     dockerfilePath: ./Dockerfile
     rootDir: services/processing
     envVars:
-      - key: RENDER_KAFKA_URL
+      - key: RENDER_KAFKA_HOST
         fromService:
           type: pserv
           name: streamo-kafka
-          property: hostport
+          property: host
+      - key: RENDER_KAFKA_PORT
+        fromService:
+          type: pserv
+          name: streamo-kafka
+          property: port
       - key: MINIO_ENDPOINT
         value: http://streamo-minio:9000
       - key: MINIO_ACCESS_KEY
@@ -127,11 +137,16 @@ services:
     dockerfilePath: ./Dockerfile
     rootDir: services/ingestion
     envVars:
-      - key: RENDER_KAFKA_URL
+      - key: RENDER_KAFKA_HOST
         fromService:
           type: pserv
           name: streamo-kafka
-          property: hostport
+          property: host
+      - key: RENDER_KAFKA_PORT
+        fromService:
+          type: pserv
+          name: streamo-kafka
+          property: port
       - key: CONTROL_PLANE_URL
         value: http://streamo-web:10000
       - key: PYTHONUNBUFFERED

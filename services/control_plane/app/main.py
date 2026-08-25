@@ -39,15 +39,16 @@ def health_check():
     kafka_status = "disconnected"
     
     # --- START DIAGNOSTICS ---
-    render_kafka = os.environ.get("RENDER_KAFKA_URL")
+    render_kafka_host = os.environ.get("RENDER_KAFKA_HOST")
+    render_kafka_port = os.environ.get("RENDER_KAFKA_PORT")
     bootstrap_kafka = os.environ.get("KAFKA_BOOTSTRAP_SERVERS")
     
     config_source = "DEFAULT"
     kafka_servers = "streamo-kafka:9092"
     
-    if render_kafka:
+    if render_kafka_host and render_kafka_port:
         config_source = "RENDER_KAFKA_URL"
-        kafka_servers = render_kafka
+        kafka_servers = f"{render_kafka_host}:{render_kafka_port}"
     elif bootstrap_kafka:
         config_source = "KAFKA_BOOTSTRAP_SERVERS"
         kafka_servers = bootstrap_kafka

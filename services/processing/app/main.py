@@ -18,7 +18,12 @@ from pyspark.sql.types import (
 )
 
 # Configuration from environment
-KAFKA_BOOTSTRAP_SERVERS = os.environ.get("RENDER_KAFKA_URL", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092"))
+_render_host = os.environ.get("RENDER_KAFKA_HOST")
+_render_port = os.environ.get("RENDER_KAFKA_PORT")
+if _render_host and _render_port:
+    KAFKA_BOOTSTRAP_SERVERS = f"{_render_host}:{_render_port}"
+else:
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092")
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "http://minio:9000")
 MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "streamo")
 MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "streamo_secret")
