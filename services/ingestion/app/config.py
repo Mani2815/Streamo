@@ -1,6 +1,6 @@
 import os
 
-KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092")
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("RENDER_KAFKA_URL", os.getenv("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092"))
 CONTROL_PLANE_URL = os.getenv("CONTROL_PLANE_URL", "http://control-plane:8000")
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", 5))
 BACKOFF_BASE_SECONDS = int(os.getenv("BACKOFF_BASE_SECONDS", 1))

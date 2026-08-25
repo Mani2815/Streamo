@@ -37,7 +37,7 @@ def health_check():
             db_status = f"error: {str(e)}"
 
     kafka_status = "disconnected"
-    kafka_servers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092")
+    kafka_servers = os.environ.get("RENDER_KAFKA_URL", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092"))
     if kafka_servers:
         try:
             admin = AdminClient({'bootstrap.servers': kafka_servers})

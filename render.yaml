@@ -7,7 +7,7 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
-      - key: KAFKA_BOOTSTRAP_SERVERS
+      - key: RENDER_KAFKA_URL
         fromService:
           type: pserv
           name: streamo-kafka
@@ -38,6 +38,8 @@ services:
         value: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
       - key: KAFKA_CONTROLLER_LISTENER_NAMES
         value: 'CONTROLLER'
+      - key: KAFKA_HEAP_OPTS
+        value: '-Xmx256M -Xms256M'
       - key: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
         value: '1'
       - key: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
@@ -85,7 +87,7 @@ services:
     dockerfilePath: ./Dockerfile
     rootDir: services/processing
     envVars:
-      - key: KAFKA_BOOTSTRAP_SERVERS
+      - key: RENDER_KAFKA_URL
         fromService:
           type: pserv
           name: streamo-kafka
@@ -125,7 +127,7 @@ services:
     dockerfilePath: ./Dockerfile
     rootDir: services/ingestion
     envVars:
-      - key: KAFKA_BOOTSTRAP_SERVERS
+      - key: RENDER_KAFKA_URL
         fromService:
           type: pserv
           name: streamo-kafka
