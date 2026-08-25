@@ -50,27 +50,53 @@ async def validate_source(source: schemas.SourceValidateRequest):
         async with httpx.AsyncClient() as client:
             response = await client.get(str(source.url), timeout=10.0)
             
+        if response.status_code != 200:
+            return schemas.SourceValidateResponse(
+                valid=False,
+                status_code=response.status_code,
+                error=f"API returned HTTP {response.status_code}"
+            )
+            
         content_type = response.headers.get("content-type", "")
-        is_json = "application/json" in content_type
-        
-        detected_fields = {}
-        if response.status_code == 200 and is_json:
-            try:
-                data = response.json()
-                detected_fields = infer_schema(data)
-            except:
-                is_json = False
-        
+        if "application/json" not in content_type.lower():
+            return schemas.SourceValidateResponse(
+                valid=False,
+                status_code=response.status_code,
+                content_type=content_type,
+                error="API did not return valid JSON"
+            )
+            
+        try:
+            data = response.json()
+            detected_fields = infer_schema(data)
+        except Exception as e:
+            return schemas.SourceValidateResponse(
+                valid=False,
+                status_code=response.status_code,
+                content_type=content_type,
+                error="Failed to parse JSON response"
+            )
+            
         return schemas.SourceValidateResponse(
-            valid=response.status_code == 200 and is_json,
+            valid=True,
             status_code=response.status_code,
             content_type=content_type,
             detected_fields=detected_fields
         )
+    except httpx.TimeoutException:
+        return schemas.SourceValidateResponse(
+            valid=False,
+            error="API request timed out"
+        )
+    except httpx.RequestError as e:
+        return schemas.SourceValidateResponse(
+            valid=False,
+            error=f"Invalid URL or network error: {str(e)}"
+        )
     except Exception as e:
         return schemas.SourceValidateResponse(
             valid=False,
-            error=str(e)
+            error=f"Unexpected error: {str(e)}"
         )
 
 @router.post("/", response_model=schemas.Source)
