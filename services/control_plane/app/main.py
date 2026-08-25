@@ -47,7 +47,7 @@ def health_check():
     kafka_servers = "streamo-kafka:9092"
     
     if render_kafka_host and render_kafka_port:
-        config_source = "RENDER_KAFKA_URL"
+        config_source = "RENDER_DASHBOARD"
         kafka_servers = f"{render_kafka_host}:{render_kafka_port}"
     elif bootstrap_kafka:
         config_source = "KAFKA_BOOTSTRAP_SERVERS"
