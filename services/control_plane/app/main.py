@@ -76,7 +76,7 @@ def health_check():
         except Exception as e:
             kafka_status = f"error: {str(e)}"
             
-    status_code = 200 if db_status == "connected" and kafka_status == "connected" else 503
+    status_code = 200 if db_status == "connected" else 503
     
     return JSONResponse(
         status_code=status_code,

@@ -78,8 +78,8 @@ curl -X POST "http://localhost:8000/api/v1/sources/" \
 
 ## Deployment
 
-### Render (Public Demo)
-Render hosts the Streamo web application/API layer (FastAPI Control Plane + UI) backed by an external Supabase PostgreSQL database. This public demo is ideal for showcasing the dashboard. Do not claim that the full Docker Compose stack runs on Render—Render only hosts the web application layer.
+### Render Free (Public Web Deployment)
+Render hosts ONLY the public Streamo web application/API layer (FastAPI Control Plane + frontend UI) backed by an external Supabase PostgreSQL database. This deployment uses a Render Free Web Service and is ideal for showcasing the dashboard. Do not claim that the full Docker Compose stack runs on Render—Render only hosts the web application layer.
 
 ### Full Stack
 Docker Compose runs the complete Streamo data engineering platform. This includes Kafka, Spark, PostgreSQL, MinIO, Airflow, and Grafana. This architecture is meant to run on a local machine or a dedicated VM (like AWS EC2).
