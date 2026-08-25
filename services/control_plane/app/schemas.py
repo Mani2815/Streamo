@@ -29,4 +29,5 @@ class SourceValidateResponse(BaseModel):
     status_code: Optional[int] = None
     content_type: Optional[str] = None
     error: Optional[str] = None
+    retry_after: Optional[int] = None
     detected_fields: Optional[Dict[str, str]] = None

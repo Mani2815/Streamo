@@ -256,6 +256,13 @@ const app = {
         const name = document.getElementById('add-name').value;
         const url = document.getElementById('add-url').value;
         const list = document.getElementById('validation-list');
+        const btnValidate = document.getElementById('btn-validate');
+        
+        // Prevent rapid clicks
+        if (btnValidate) {
+            btnValidate.disabled = true;
+            btnValidate.innerText = 'Validating...';
+        }
         
         list.innerHTML = '<li><span class="skeleton skeleton-text short"></span></li>';
         document.getElementById('validation-result').classList.remove('hidden');
@@ -286,12 +293,24 @@ const app = {
                     }
                 }
                 document.getElementById('btn-connect').classList.remove('hidden');
+            } else if (result.status_code === 429) {
+                list.innerHTML += `<li style="color: var(--warning);">⚠ External API rate limit reached. Wait and retry.</li>`;
+                let retryText = result.error || "API rate limited. Please wait before retrying.";
+                if (result.retry_after) {
+                    retryText += ` (Retry after ${result.retry_after} seconds)`;
+                }
+                list.innerHTML += `<li style="color: var(--text-secondary);">${retryText}</li>`;
             } else {
                 list.innerHTML += `<li style="color: var(--danger);">✕ Validation failed</li>`;
                 if (result.error) list.innerHTML += `<li style="color: var(--text-secondary);">Reason: ${result.error}</li>`;
             }
         } catch (e) {
             list.innerHTML = `<li style="color: var(--danger);">✕ Network error communicating with Control Plane</li>`;
+        } finally {
+            if (btnValidate) {
+                btnValidate.disabled = false;
+                btnValidate.innerText = 'Validate & Analyze Schema';
+            }
         }
     },
 

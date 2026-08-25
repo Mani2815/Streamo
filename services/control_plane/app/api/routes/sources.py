@@ -50,6 +50,18 @@ async def validate_source(source: schemas.SourceValidateRequest):
         async with httpx.AsyncClient() as client:
             response = await client.get(str(source.url), timeout=10.0)
             
+        if response.status_code == 429:
+            retry_after = response.headers.get("retry-after")
+            retry_val = None
+            if retry_after and retry_after.isdigit():
+                retry_val = int(retry_after)
+            return schemas.SourceValidateResponse(
+                valid=False,
+                status_code=429,
+                error="API rate limited. Please wait before retrying.",
+                retry_after=retry_val
+            )
+            
         if response.status_code != 200:
             return schemas.SourceValidateResponse(
                 valid=False,
