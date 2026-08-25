@@ -7,3 +7,138 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: streamo-kafka:9092
+      - key: PORT
+        value: 10000
+
+  - type: pserv
+    name: streamo-kafka
+    env: docker
+    image: confluentinc/cp-kafka:7.6.0
+    disk:
+      name: kafka_data
+      mountPath: /var/lib/kafka/data
+      sizeGB: 1
+    envVars:
+      - key: KAFKA_NODE_ID
+        value: '1'
+      - key: KAFKA_PROCESS_ROLES
+        value: 'broker,controller'
+      - key: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+        value: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      - key: KAFKA_CONTROLLER_QUORUM_VOTERS
+        value: '1@streamo-kafka:9093'
+      - key: KAFKA_LISTENERS
+        value: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
+      - key: KAFKA_CONTROLLER_LISTENER_NAMES
+        value: 'CONTROLLER'
+      - key: KAFKA_ADVERTISED_LISTENERS
+        value: 'PLAINTEXT://streamo-kafka:9092'
+      - key: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+        value: '1'
+      - key: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+        value: '0'
+      - key: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+        value: '1'
+      - key: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+        value: '1'
+      - key: CLUSTER_ID
+        value: 'ciWo7IWazngRchmPES6q5A=='
+
+  - type: pserv
+    name: streamo-minio
+    env: docker
+    dockerfilePath: ./Dockerfile
+    rootDir: services/minio
+    disk:
+      name: minio_data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: MINIO_ROOT_USER
+        sync: false
+      - key: MINIO_ROOT_PASSWORD
+        sync: false
+
+  - type: pserv
+    name: streamo-spark-master
+    env: docker
+    image: apache/spark:3.5.1
+    dockerCommand: "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host streamo-spark-master --port 7077 --webui-port 8080"
+    envVars:
+      - key: SPARK_MASTER_HOST
+        value: streamo-spark-master
+
+  - type: pserv
+    name: streamo-spark-worker
+    env: docker
+    image: apache/spark:3.5.1
+    dockerCommand: "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://streamo-spark-master:7077 --webui-port 8081"
+    
+  - type: worker
+    name: streamo-spark-processing
+    env: docker
+    dockerfilePath: ./Dockerfile
+    rootDir: services/processing
+    envVars:
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: streamo-kafka:9092
+      - key: MINIO_ENDPOINT
+        value: http://streamo-minio:9000
+      - key: MINIO_ACCESS_KEY
+        fromService:
+          type: pserv
+          name: streamo-minio
+          envVarKey: MINIO_ROOT_USER
+      - key: MINIO_SECRET_KEY
+        fromService:
+          type: pserv
+          name: streamo-minio
+          envVarKey: MINIO_ROOT_PASSWORD
+      - key: SPARK_HOME
+        value: /opt/spark
+      - key: SPARK_MASTER_URL
+        value: spark://streamo-spark-master:7077
+      - key: PYTHONUNBUFFERED
+        value: '1'
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_DB
+        sync: false
+      - key: POSTGRES_HOST
+        sync: false
+      - key: POSTGRES_PORT
+        sync: false
+
+  - type: worker
+    name: streamo-ingestion
+    env: docker
+    dockerfilePath: ./Dockerfile
+    rootDir: services/ingestion
+    envVars:
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: streamo-kafka:9092
+      - key: CONTROL_PLANE_URL
+        value: http://streamo-web:10000
+      - key: PYTHONUNBUFFERED
+        value: '1'
+
+  - type: web
+    name: streamo-grafana
+    env: docker
+    dockerfilePath: ./Dockerfile
+    rootDir: grafana
+    envVars:
+      - key: GF_SECURITY_ADMIN_USER
+        sync: false
+      - key: GF_SECURITY_ADMIN_PASSWORD
+        sync: false
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: STREAMO_DB
+        sync: false
