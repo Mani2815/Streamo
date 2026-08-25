@@ -68,7 +68,8 @@ services:
   - type: pserv
     name: streamo-spark-master
     runtime: image
-    image: apache/spark:3.5.1
+    image:
+      url: docker.io/apache/spark:3.5.1
     dockerCommand: "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host streamo-spark-master --port 7077 --webui-port 8080"
     envVars:
       - key: SPARK_MASTER_HOST
@@ -77,7 +78,8 @@ services:
   - type: pserv
     name: streamo-spark-worker
     runtime: image
-    image: apache/spark:3.5.1
+    image:
+      url: docker.io/apache/spark:3.5.1
     dockerCommand: "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://streamo-spark-master:7077 --webui-port 8081"
     
   - type: worker
