@@ -1,0 +1,6 @@
+FROM confluentinc/cp-kafka:7.6.0
+COPY kafka-entrypoint.sh /kafka-entrypoint.sh
+USER root
+RUN chmod +x /kafka-entrypoint.sh
+USER appuser
+CMD ["bash", "/kafka-entrypoint.sh"]

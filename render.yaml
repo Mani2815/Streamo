@@ -17,8 +17,8 @@ services:
 
   - type: pserv
     name: streamo-kafka
-    runtime: image
-    image: confluentinc/cp-kafka:7.6.0
+    runtime: docker
+    dockerfilePath: ./Dockerfile.kafka
     disk:
       name: kafka_data
       mountPath: /var/lib/kafka/data
@@ -33,13 +33,11 @@ services:
       - key: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
         value: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
       - key: KAFKA_CONTROLLER_QUORUM_VOTERS
-        value: '1@streamo-kafka:9093'
+        value: '1@localhost:9093'
       - key: KAFKA_LISTENERS
         value: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
       - key: KAFKA_CONTROLLER_LISTENER_NAMES
         value: 'CONTROLLER'
-      - key: KAFKA_ADVERTISED_LISTENERS
-        value: 'PLAINTEXT://streamo-kafka:9092'
       - key: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
         value: '1'
       - key: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
