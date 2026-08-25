@@ -37,7 +37,35 @@ def health_check():
             db_status = f"error: {str(e)}"
 
     kafka_status = "disconnected"
-    kafka_servers = os.environ.get("RENDER_KAFKA_URL", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092"))
+    
+    # --- START DIAGNOSTICS ---
+    render_kafka = os.environ.get("RENDER_KAFKA_URL")
+    bootstrap_kafka = os.environ.get("KAFKA_BOOTSTRAP_SERVERS")
+    
+    config_source = "DEFAULT"
+    kafka_servers = "streamo-kafka:9092"
+    
+    if render_kafka:
+        config_source = "RENDER_KAFKA_URL"
+        kafka_servers = render_kafka
+    elif bootstrap_kafka:
+        config_source = "KAFKA_BOOTSTRAP_SERVERS"
+        kafka_servers = bootstrap_kafka
+        
+    print(f"KAFKA CONFIG SOURCE: {config_source}", flush=True)
+    
+    # Parse host and port safely
+    host = kafka_servers
+    port = "unknown"
+    if ":" in kafka_servers:
+        parts = kafka_servers.rsplit(":", 1)
+        host = parts[0]
+        port = parts[1]
+        
+    print(f"KAFKA HOST: {host}", flush=True)
+    print(f"KAFKA PORT: {port}", flush=True)
+    # --- END DIAGNOSTICS ---
+
     if kafka_servers:
         try:
             admin = AdminClient({'bootstrap.servers': kafka_servers})
