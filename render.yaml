@@ -11,7 +11,7 @@ services:
         fromService:
           type: pserv
           name: streamo-kafka
-          envVarKey: RENDER_DISCOVERY_SERVICE
+          property: hostport
       - key: PORT
         value: 10000
 
@@ -89,7 +89,7 @@ services:
         fromService:
           type: pserv
           name: streamo-kafka
-          envVarKey: RENDER_DISCOVERY_SERVICE
+          property: hostport
       - key: MINIO_ENDPOINT
         value: http://streamo-minio:9000
       - key: MINIO_ACCESS_KEY
@@ -129,7 +129,7 @@ services:
         fromService:
           type: pserv
           name: streamo-kafka
-          envVarKey: RENDER_DISCOVERY_SERVICE
+          property: hostport
       - key: CONTROL_PLANE_URL
         value: http://streamo-web:10000
       - key: PYTHONUNBUFFERED
