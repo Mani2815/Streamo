@@ -17,7 +17,7 @@ _render_port = os.environ.get("RENDER_KAFKA_PORT")
 if _render_host and _render_port:
     KAFKA_BOOTSTRAP_SERVERS = f"{_render_host}:{_render_port}"
 else:
-    KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "streamo-kafka:9092")
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS")
 
 def infer_schema(data: Any) -> Dict[str, str]:
     schema = {}
@@ -150,6 +150,10 @@ def get_source(id: int, db: Session = Depends(get_db)):
     return source
 
 def ensure_topic_exists(source_name: str):
+    if not KAFKA_BOOTSTRAP_SERVERS:
+        print("Kafka not configured; skipping topic creation.")
+        return
+
     topic_name = f"streamo.raw.{source_name}"
     try:
         admin_client = AdminClient({
